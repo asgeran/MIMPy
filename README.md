@@ -16,5 +16,7 @@ The computations are based on classical mirror image modelling (MIM) as proposed
 
 ### References
 [1] J. B. Allen and D. A. Berkley, “Image Method for Efficiently Simulating Small-Room Acoustics,” The Journal of the Acoustical Society of America, vol. 65, no. 4, pp. 943–950, Apr. 1979.
+
 [2] P. M. Peterson, “Simulating the Response of Multiple Microphones to a Single Acoustic Source in a Reverberant Room,” The Journal of the Acoustical Society of America, vol. 80, no. 5, pp. 1527–1529, Nov. 1986.
+
 [3] E. A. Lehmann and A. M. Johansson, “Prediction of Energy Decay in Room Impulse Responses Simulated with an Image-Source Model,” The Journal of the Acoustical Society of America, vol. 124, no. 1, pp. 269–277, Jul. 2008.
