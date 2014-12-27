@@ -36,14 +36,14 @@ class room:
     modelling.
     """
     # Default parameters
-    c = 340.0           # Speed of sound [m/s].
-    fs = 8000           # Sampling frequency [Hz].
-    impsamples = 4000   # Number of samples for impulse respones [-].
-    sinchalfwidth = 30  # Parameter for simulation precision [samples].
-    responses = []      # Responses
+    c = 344.0           # Speed of sound [m/s].
+    #fs = 8000           # Sampling frequency [Hz].
+    #impsamples = 4000   # Number of samples for impulse respones [-].
+    sinchalfwidth = 30  # Parameter for simulation precision [samples]. Higher
+                        # is better but more expensive.
 
 
-    def __init__(self, dims, lspks, mics, beta):
+    def __init__(self, dims, beta, fs=8000, impsamples=4000):
         """
         Initialise room object.
 
@@ -51,160 +51,63 @@ class room:
         ----------
         dims : ndarray(ndim=1)
             Room dimension [m].
-        lspks : ndarray(ndim=2)
-            Loudspeaker positions [m].
-        mics : ndarray(ndim=2)
-            Microphone positions [m].
         beta : ndarray
             Reflection coefficients of walls as
             ndarray([left, right, front, back, floor, ceiling]).
             Should be contained in interval [-1, 1].
             Negative if reflections are to cause phase inversions.
+        fs : integer
+            Sampling frequency [Hz].
+        impsamples : integer
+            Length of computed impulse responses [samples].
 
         Returns
         -------
         -
         """
         self.dims = dims
-        self.lspks = lspks
-        self.mics = mics
         self.beta = beta
+        self.fs = 8000
+        self.impsamples = 4000
 
 
-    def compute_responses(self, verbose=False):
+    def get_rir(self, source, receiver):
         """
-        Update responses from all loudspeakers to all microphones contained in
-        the object.
+        Get the transfer function from one point in space to another. Result is
+        returned in frequency domain with the same grid as the room impulse
+        responses are measured with.
 
         Parameters
         ----------
-        verbose : bool
-            Chooses wheter information is printed out along the way [-].
+        source : ndarray(ndim=1)
+            Point from which the rir should be simulated [m].
+        receiver : ndarray(ndim=1)
+            Point to which the rir should be simulated [m].
 
         Returns
         -------
-        -
+        rir : ndarray(ndim=1)
+            Impulse response at point.
         """
-        self.responses = np.empty((len(self.lspks), len(self.mics),
-                                  self.impsamples), dtype=np.complex128)
-        p = Pool(params.threads)
-        X = []
-        for k in xrange(len(self.lspks)):
-            for l in xrange(len(self.mics)):
-                X = X + [{'fs':self.fs, 'impsamples':self.impsamples,
-                            'c':self.c, 'sinchalfwidth':self.sinchalfwidth,
-                            'beta':self.beta, 'lspks':self.lspks[k],
-                            'mics':self.mics[l], 'dims':self.dims}]
 
-        mp = p.map_async(_f1, X)
-        p.close()
-        if verbose:
-            while not mp.ready():
-                rem = mp._number_left
-                print "\r%d tasks left..." % (rem),
-                sys.stdout.flush()
-                time.sleep(0.5)
-            print "\r",
-        p.join()
-        self.responses = np.array(mp.get()).reshape((len(self.lspks),
-                                                          len(self.mics),
-                                                          self.impsamples))
+        rir, _ = rimp.get_imp_response_approx(self.fs, self.impsamples, self.c,
+                                              self.sinchalfwidth, self.beta, 
+                                              source, receiver, self.dims)
+
+        return rir
 
 
-    def set_source_filters(self, filters):
+    def get_plane_resp_at_freq(self, source, f, height, maxdelay=0.0, resx=50,
+                               resy=50, lims=np.zeros(4)):
         """
-        Set filters in fron of loudspeakers.
+        Get one frequency sample of the response from one source to a grid of
+        points on a horizontal plane. This can be used to visualize the sound
+        field at a frequency.
 
         Parameters
         ----------
-        filters : ndarray(ndim=2)
-            Array of len(lspks) FIR filters. The array sould simply contain the
-            impulse responses  [-].
-
-        Returns
-        -------
-        -
-        """
-        self.filters = filters
-        self.filtsamples = filters.shape[1]
-
-
-    def get_resp_at_point(self, point):
-        """
-        Get the transfer function from all loudspeakers combined (with filters), 
-        same filter input, to a point in space. Result is returned in frequency
-        domain with the same grid as the room impulse responses are measured with.
-        Simulation is caried out either in the frequency or time domain depending
-        on the value of room.simtype.
-
-        Parameters
-        ----------
-        point : ndarray(ndim=1)
-            Point at which reponse should be simulated [m].
-
-        Returns
-        -------
-        resp : ndarray(ndim=1)
-            Complex frequency response at point.
-        """
-        resp = np.zeros((self.impsamples + self.filtsamples - 1,),
-                        dtype=np.complex128)
-
-        for k in xrange(len(self.lspks)):
-            imp, _ = rimp.get_imp_response_approx(self.fs, self.impsamples,
-                                                  self.c,
-                                                  self.sinchalfwidth,
-                                                  self.beta, self.lspks[k],
-                                                  point, self.dims)
-
-            filt = np.zeros((self.impsamples + self.filtsamples - 1,),
-                            dtype=np.complex128)
-            filt[0:self.filtsamples] = self.filters[k]
-            resp = (resp +
-                    np.fft.fft(imp, n=self.impsamples + self.filtsamples - 1)
-                    * np.fft.fft(filt))
-
-        return resp
-
-
-    def get_resp_at_mics(self, n, length=0):
-        """
-        Get the transfer function at a selection of the contained microphones. This
-        function relies on compute_responses() having been called after the room
-        object has been initialised.
-
-        Parameters
-        ----------
-        n : ndarray(ndim=1)
-            Indices for microphones for which responses should be returned [-].
-        length : positive integer
-            Size of return frequency grid. Defaults to <impsamples>.
-        Returns
-        -------
-        resp : ndarray(ndim=2)
-            Complex frequency response at chosen michrophones [-].
-        """
-        if length == 0:
-            length = self.impsamples
-
-        resp = np.zeros((len(n), int(length)), dtype=np.complex128)
-        for k in xrange(len(self.lspks)):
-            resp = (resp
-                 + np.fft.fft(np.fft.ifft(self.responses[k,n]), n=int(length))
-                 * np.fft.fft(self.filters[k], n=int(length)))
-
-        return resp
-
-    def get_plane_resp_at_freq(self, f, height, maxdelay=0.0, resx=50, resy=50,
-                               lims=np.zeros(4), verbose=False):
-
-        """
-        Get the response of a horizontal plane in the room to all the
-        loudspeakers/filters contained at a single frequency. The function relies
-        on the control filters having been set.
-
-        Parameters
-        ----------
+        source : ndarray(ndim=1)
+            Point from which the sound should emanate [m].
         f : float
             The frequency at which the simulation should be caried out [Hz].
         height : float
@@ -217,8 +120,6 @@ class room:
             Resolution of grid, y-axis [-].
         lims : array
             Array with the grid limits [xmin, xmax, ymin, ymax] [m].
-        verbose : bool
-            Chooses wheter information is printed out along the way [-].
 
         Returns
         -------
@@ -229,55 +130,7 @@ class room:
         if np.linalg.norm(lims) < 0.0001:
             lims = np.array([0.0, self.dims[0], 0.0, self.dims[1]])
 
-        grid = np.zeros((resx, resy), dtype=np.complex128)
-
-        p = Pool(params.threads)
-        X = []
-        for k in xrange(len(self.lspks)):
-            X = X + [{'f':f, 'c':self.c, 'beta':self.beta,
-                      'lspks':self.lspks[k], 'dims':self.dims, 'resx':resx,
-                      'resy':resy, 'height':height, 'maxdelay':maxdelay,
-                      'lims':lims}]
-
-        mp = p.map_async(_f2, X)
-        p.close()
-        if verbose:
-            while not mp.ready():
-                rem = mp._number_left
-                print "\r%d tasks left..." % (rem),
-                sys.stdout.flush()
-                time.sleep(0.5)
-            print "\r",
-        p.join()
-        res = mp.get()
-
-        for k in xrange(len(self.lspks)):
-            exp = np.exp(-1J * 2 * np.pi * f / self.fs 
-                        * np.arange(len(self.filters[k])))
-            resp = np.inner(self.filters[k], exp)
-            grid = grid + resp * res[k]
+        grid, _ = rimp.get_grid(f, self.c, height, maxdelay, resx, resy,
+                                self.beta, source, self.dims, lims)
 
         return grid
-
-
-    def convolve_at_point(self, sig, point):
-        """
-        Convolve a signal with the impulse response at a ceratin point in the
-        room. Both filters and room response for all loudspeakers are taken into
-        account.
-
-        Parameters
-        ----------
-        sig : ndarray(ndim=1)
-            Array with the samples of the signal [-].
-        point : ndarray(ndim=1)
-            Array with the position of the the point in the room [m].
-
-        Returns
-        -------
-        csig : ndarray(ndim=1)
-            Signal which has been convolved with room impulse at point [-].
-        """
-
-        imp = np.fft.ifft(self.get_resp_at_point(point)).real
-        return np.convolve(sig, imp)
