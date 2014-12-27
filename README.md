@@ -7,7 +7,7 @@ A framework for simple acoustical simulations in rectangular rooms.
 The package computes room impulse responses from ideal loudspeakers to ideal microphones in rectangular rooms.
 
 ### Algorithms
-The computations are based on classical mirror image modelling (MIM) as proposed in [1] and with the modification proposed in [2]. See also [3] if you are interested in the specifics of how the algorithm is implemented. Whenever multiple room impulse responses are to be simulated at once, the package is able to take advantage of multiprocessing (if manually enabled).
+The computations are based on classical mirror image modelling (MIM) as proposed in [1] and with the modification proposed in [2]. See also [3] if you are interested in the specifics of how the algorithm is implemented.
 
 ### TODO
 * The API is to be restructured before the package is really of any use.
