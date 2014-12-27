@@ -3,42 +3,18 @@ import time
 import sys
 from multiprocessing import Pool
 import room_impulse as rimp
-import parameters as params
 
-
-#-----------------------------------------------------------------------------#
-#                               Callback functions                            #
-#-----------------------------------------------------------------------------#
-def _f1(x):
-    imp, _ = (
-        rimp.get_imp_response_approx(x['fs'], x['impsamples'],
-                                     x['c'],
-                                     x['sinchalfwidth'],
-                                     x['beta'], x['lspks'],
-                                     x['mics'], x['dims']))
-
-    return np.fft.fft(imp)
-
-
-def _f2(x):
-    g, _ = rimp.get_grid(x['f'], x['c'], x['height'], x['maxdelay'], x['resx'],
-                         x['resy'], x['beta'], x['lspks'], x['dims'],
-                         x['lims'])
-    return g
 
 #-----------------------------------------------------------------------------#
 #                               Room Class                                    #
 #-----------------------------------------------------------------------------#
 class room:
-    """
-    The room object contains important acoustical features of a rectangular room
+    """ The room object contains important acoustical features of a rectangular room
     and is capable of carrying out various simulations based on mirror image
     modelling.
     """
     # Default parameters
     c = 344.0           # Speed of sound [m/s].
-    #fs = 8000           # Sampling frequency [Hz].
-    #impsamples = 4000   # Number of samples for impulse respones [-].
     sinchalfwidth = 30  # Parameter for simulation precision [samples]. Higher
                         # is better but more expensive.
 
@@ -130,7 +106,8 @@ class room:
         if np.linalg.norm(lims) < 0.0001:
             lims = np.array([0.0, self.dims[0], 0.0, self.dims[1]])
 
-        grid, _ = rimp.get_grid(f, self.c, height, maxdelay, resx, resy,
-                                self.beta, source, self.dims, lims)
+        grid, _ = rimp.get_grid_at_freq(f, self.c, height, maxdelay, resx,
+                                        resy, self.beta, source, self.dims,
+                                        lims)
 
         return grid
