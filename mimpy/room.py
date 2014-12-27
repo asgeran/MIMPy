@@ -43,8 +43,8 @@ class room:
         """
         self.dims = dims
         self.beta = beta
-        self.fs = 8000
-        self.impsamples = 4000
+        self.fs = fs
+        self.impsamples = impsamples
 
 
     def get_rir(self, source, receiver):
