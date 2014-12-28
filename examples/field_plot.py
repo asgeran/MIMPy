@@ -12,7 +12,7 @@ for three different sets of reflection coefficients:
 
 The amplitude and phase is plotted separately in each condition. The resulting
 plot is saved to pdf. Note that this script can take several minutes to run!
-I went a little crazy with matplotlib settings on this one. Sorry."""
+"""
 
 from __future__ import print_function
 import numpy as np
@@ -58,13 +58,13 @@ room = mimpy.room(dims, beta_1, fs, impsamples)
 
 # Get impulse response from a to b
 print('Computing responses 1/3 ...')
-grid_1 = room.get_plane_resp_at_freq(source, plot_freq, height, 0.0, 100, 100)
+grid_1 = room.get_plane_resp_at_freq(source, plot_freq, height, 0.0, 400, 400)
 print('Computing responses 2/3 ...')
 room.beta = beta_2
-grid_2 = room.get_plane_resp_at_freq(source, plot_freq, height, 0.0, 100, 100)
+grid_2 = room.get_plane_resp_at_freq(source, plot_freq, height, 0.0, 400, 400)
 print('Computing responses 3/3 ...')
 room.beta = beta_3
-grid_3 = room.get_plane_resp_at_freq(source, plot_freq, height, 0.0, 100, 100)
+grid_3 = room.get_plane_resp_at_freq(source, plot_freq, height, 0.0, 400, 400)
 
 #-----------------------------------------------------------------------------#
 #                               Plotting                                      #
@@ -77,9 +77,6 @@ try:
 except AttributeError:
     None
 
-# Color for text
-textcolor = (239./255, 239./255, 239./255)
-
 # Generate colormaps for amplitude and phase
 cmap_ampl = plt.get_cmap('YlOrRd')
 cmap = plt.get_cmap('RdYlBu')
@@ -88,67 +85,73 @@ new_cmap_vals = ([cmap(i) for i in range(cmap.N)]
 cmap_phase = mcolors.ListedColormap(new_cmap_vals)
 
 # Make figure
-fig = plt.figure(figsize=(20 / 2.54, 24 / 2.54), dpi=300)
+fig = plt.figure(figsize=(21 / 2.54, 26 / 2.54), dpi=300)
 
 # Plot condition 1 amplitude
 ax1_a = fig.add_subplot(3, 2, 1)
-plt.imshow(20*np.log10(np.abs(grid_1)), cmap=cmap_ampl, vmin=-40, vmax=0)
+plt.imshow(20*np.log10(np.abs(grid_1)), cmap=cmap_ampl, vmin=-40, vmax=0,
+           extent=[0, dims[0], 0, dims[1]])
 cbar1_a = plt.colorbar()
-cbar1_a.set_label('Amplitude [dB]', color=textcolor)
-plt.xlabel('x [m]', color=textcolor)
-plt.ylabel('y [m]', color=textcolor)
+cbar1_a.set_label('Amplitude [dB]')
+plt.xlabel('x [m]')
+plt.ylabel('y [m]')
+plt.title('Anechoic, amplitude')
 
 # Plot condition 1 phase
 ax1_p = fig.add_subplot(3, 2, 2)
-plt.imshow(np.angle(grid_1), cmap=cmap_phase)
+plt.imshow(np.angle(grid_1), cmap=cmap_phase,
+           extent=[0, dims[0], 0, dims[1]])
 cbar1_p = plt.colorbar()
-cbar1_p.set_label('Phase [rad]', color=textcolor)
-plt.xlabel('x [m]', color=textcolor)
-plt.ylabel('y [m]', color=textcolor)
+cbar1_p.set_label('Phase [rad]')
+cbar1_p.set_ticks([-np.pi, -np.pi / 2, 0.0, np.pi / 2, np.pi])
+cbar1_p.set_ticklabels([r'$-\pi$', r'$-\pi/2$', r'$0$', r'$\pi/2$', r'$\pi$'])
+plt.xlabel('x [m]')
+plt.ylabel('y [m]')
+plt.title('Anechoic, phase')
 
 # Plot condition 2 amplitude
 ax2_a = fig.add_subplot(3, 2, 3)
-plt.imshow(20*np.log10(np.abs(grid_2)), cmap=cmap_ampl, vmin=-40, vmax=0)
+plt.imshow(20*np.log10(np.abs(grid_2)), cmap=cmap_ampl, vmin=-40, vmax=0,
+           extent=[0, dims[0], 0, dims[1]])
 cbar2_a = plt.colorbar()
-cbar2_a.set_label('Amplitude [dB]', color=textcolor)
-plt.xlabel('x [m]', color=textcolor)
-plt.ylabel('y [m]', color=textcolor)
+cbar2_a.set_label('Amplitude [dB]')
+plt.xlabel('x [m]')
+plt.ylabel('y [m]')
+plt.title('One reflecting wall, amplitude')
 
 # Plot condition 2 phase
 ax2_p = fig.add_subplot(3, 2, 4)
-plt.imshow(np.angle(grid_2), cmap=cmap_phase)
+plt.imshow(np.angle(grid_2), cmap=cmap_phase,
+           extent=[0, dims[0], 0, dims[1]])
 cbar2_p = plt.colorbar()
-cbar2_p.set_label('Phase [rad]', color=textcolor)
-plt.xlabel('x [m]', color=textcolor)
-plt.ylabel('y [m]', color=textcolor)
+cbar2_p.set_label('Phase [rad]')
+cbar2_p.set_ticks([-np.pi, -np.pi / 2, 0.0, np.pi / 2, np.pi])
+cbar2_p.set_ticklabels([r'$-\pi$', r'$-\pi/2$', r'$0$', r'$\pi/2$', r'$\pi$'])
+plt.xlabel('x [m]')
+plt.ylabel('y [m]')
+plt.title('One reflecting wall, phase')
 
 # Plot condition 3 amplitude
 ax3_a = fig.add_subplot(3, 2, 5)
-plt.imshow(20*np.log10(np.abs(grid_3)), cmap=cmap_ampl, vmin=-40, vmax=0)
+plt.imshow(20*np.log10(np.abs(grid_3)), cmap=cmap_ampl, vmin=-40, vmax=0,
+           extent=[0, dims[0], 0, dims[1]])
 cbar3_a = plt.colorbar()
-cbar3_a.set_label('Amplitude [dB]', color=textcolor)
-plt.xlabel('x [m]', color=textcolor)
-plt.ylabel('y [m]', color=textcolor)
+cbar3_a.set_label('Amplitude [dB]')
+plt.xlabel('x [m]')
+plt.ylabel('y [m]')
+plt.title('Six reflecting walls, amplitude')
 
 # Plot condition 3 phase
 ax3_p = fig.add_subplot(3, 2, 6)
-plt.imshow(np.angle(grid_3), cmap=cmap_phase)
+plt.imshow(np.angle(grid_3), cmap=cmap_phase,
+           extent=[0, dims[0], 0, dims[1]])
 cbar3_p = plt.colorbar()
-cbar3_p.set_label('Phase [rad]', color=textcolor)
-plt.xlabel('x [m]', color=textcolor)
-plt.ylabel('y [m]', color=textcolor)
+cbar3_p.set_label('Phase [rad]')
+cbar3_p.set_ticks([-np.pi, -np.pi / 2, 0.0, np.pi / 2, np.pi])
+cbar3_p.set_ticklabels([r'$-\pi$', r'$-\pi/2$', r'$0$', r'$\pi/2$', r'$\pi$'])
+plt.xlabel('x [m]')
+plt.ylabel('y [m]')
+plt.title('Six reflecting walls, phase')
 
-# Change the colors of ... everything
-for ax in [ax1_a, ax2_a, ax3_a, ax1_p, ax2_p, ax3_p]:
-    ax.spines['bottom'].set_color(textcolor)
-    ax.spines['top'].set_color(textcolor)
-    ax.spines['left'].set_color(textcolor)
-    ax.spines['right'].set_color(textcolor)
-    ax.tick_params(axis='x', colors=textcolor)
-    ax.tick_params(axis='y', colors=textcolor)
-
-for cbar in [cbar1_a, cbar2_a, cbar3_a, cbar1_p, cbar2_p, cbar3_p]:
-    cbar.ax.tick_params(axis='y', colors=textcolor)
-    cbar.ax.spines['left'].set_color(textcolor)
-
-plt.savefig('field_plot.pdf', facecolor=(43./255,58./255,66./255))
+# Save figure
+plt.savefig('field_plot.pdf', bbox_inches='tight')
