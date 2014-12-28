@@ -1,9 +1,17 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
+# Specific files which are auto-generated from Cython code
+mimpy/room_impulse/room_impulse.c
+
+# Plots and audio
+*.pdf
+*.png
+*.wav
 
 # Gedit backup files
 *~
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
 
 # C extensions
 *.so
