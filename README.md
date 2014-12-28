@@ -8,6 +8,8 @@ The package computes room impulse responses from ideal loudspeakers to ideal mic
 
 It is the hope that MIMPy will eventually also be able to compute binaural room impulse responses and aid in producing binauralized audio   .
 
+![Example of sound field visualization](/images/field_plot.png)
+
 ### Algorithms
 The computations are based on classical mirror image modelling (MIM) as proposed in [1] and with the modification proposed in [2]. See also [3] if you are interested in the specifics of how the algorithm is implemented.
 

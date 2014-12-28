@@ -154,4 +154,4 @@ plt.ylabel('y [m]')
 plt.title('Six reflecting walls, phase')
 
 # Save figure
-plt.savefig('field_plot.pdf', bbox_inches='tight')
+plt.savefig('field_plot.pdf', dpi=300, bbox_inches='tight')
